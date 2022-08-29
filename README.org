@@ -1,0 +1,29 @@
+#+title: Youtube Search SPA
+* Youtube Search SPA
+** About
+This is a project for a JHA job. The goal of this project is to implement the
+Youtube Data API's search endpoint into a SPA and provide a UI for interacting
+with the API and displaying results. Each result ought to contain the following
+parts:
+- Title that is a link that opens the video on YouTube.com
+- Thumbnail
+- Description
+- Display total number of comments on each video.
+
+And the UI should be able to provide means of searching by keyword and sort
+results by date, rating, and relevance to the keyword.
+
+** Dependencies and Packages
+*** NextJS
+This project is primarily built with NextJS. Main reason is I didn't have much
+heads up and NextJS is a very quick way to stand up a website that has a backend
+and a frontend all served together. I looked into fastify+react but I did not
+want to invest the time in figuring out how to serve react with fastify and
+still get webpack's hot-reload working.
+
+** Design
+The Youtube Data API requires that I have a auth token or setup oauth. Auth
+token sounded like the expedient option, but that means bundling that token into
+whatever is doing the API calls. Initially I had hoped to make this client-side
+only, but we can't hand our tokens to the client, so I needed some backend that
+I could "proxy" the search requests through.
