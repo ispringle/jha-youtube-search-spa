@@ -1,16 +1,15 @@
-import Head from 'next/head'
-
-import '../styles/styles.sass'
-
+import Head from "next/head";
+import { ChakraProvider } from "@chakra-ui/react";
 
 export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-          <title>ian.ist</title>
-          <link rel="icon" href="fleuron.svg" />
+        <title>JHA Youtube Search</title>
       </Head>
-      <Component {...pageProps} />
+      <ChakraProvider>
+        <Component {...pageProps} />
+      </ChakraProvider>
     </>
-  )
+  );
 }

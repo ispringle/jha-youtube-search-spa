@@ -5,3 +5,6 @@ tmp/
 
 .next
 node_modules
+.env.local
+.husky/
+.eslintcache

@@ -3,12 +3,27 @@
 ** About
 This is a project for a JHA job. The goal of this project is to implement the
 Youtube Data API's search endpoint into a SPA and provide a UI for interacting
-with the API and displaying results. Each result ought to contain the following
+with the API and displaying results.
+
+*** Exercise Details
+The YouTube Data API provides access to YouTube. In this assignment you will write a single-page web application which uses the YouTube data api to provide a user interface for search. We use Web Components and Lit. But, feel free to use any framework or library you wish to accomplish this task. If you choose to use code generators or a boilerplate project as a starting point, please make sure we can tell which parts of the project are yours and which are generated or from the boilerplate. Descriptions in the readme and a range of commits helps with this.
+
+Your application should consist of a Search view that contains the following features:
+- [X] Search by keyword
+- [X] Sort results by date, rating and relevance
+
+List view of results should contain:
+- [X] Title that is a link that opens the video on YouTube.com
+- [X] Thumbnail
+- [X] Description
+- [X] Display total number of comments on each video.
+
+Try not to get bogged down with the look and feel of the application - we’re more interested in how you organize the project and which tools (patterns, libraries, frameworks, dependency management, etc.) you choose to use. This should be production ready when done and appear like any other feature you would work on for a product.
+
+When you're finished, please put your project in a repository on Github and send us a link. We will then do a pair programming session where we'll have some questions for you about your code and possibly make some additions to it.
+
+Each result ought to contain the following
 parts:
-- Title that is a link that opens the video on YouTube.com
-- Thumbnail
-- Description
-- Display total number of comments on each video.
 
 And the UI should be able to provide means of searching by keyword and sort
 results by date, rating, and relevance to the keyword.
@@ -20,6 +35,14 @@ heads up and NextJS is a very quick way to stand up a website that has a backend
 and a frontend all served together. I looked into fastify+react but I did not
 want to invest the time in figuring out how to serve react with fastify and
 still get webpack's hot-reload working.
+*** swr
+I elected to use the swr package to hit the internal API. I did this because the
+package provides a nice hook that updates the returned data once it's retrieved.
+It's only of the simplest ways to not block paints.
+*** Chakra-UI
+Never used this before, but I have heard good things from others. Decided to try
+it out since I was looking to avoid styling if at all possible due to the time
+constraints on this project (little less than 24 hours).
 
 ** Design
 The Youtube Data API requires that I have a auth token or setup oauth. Auth
@@ -27,3 +50,131 @@ token sounded like the expedient option, but that means bundling that token into
 whatever is doing the API calls. Initially I had hoped to make this client-side
 only, but we can't hand our tokens to the client, so I needed some backend that
 I could "proxy" the search requests through.
+
+*** =api/search.js=
+This application has a single api endpoint, =/api/search=. This was implemented to
+avoid shipping the auth bearer token for the Youtube Data API. The API makes two
+requests for every search. First it hits the =/search= endpoint, this is done to
+generate a list of search results. Then it takes the search results, grabs the
+video IDs from them, and hits the =/videos= endpoint. This endpoint is what is
+used to gather the data needed about the videos to display them properly in the
+UI. If we didn't need to display the comment count, we could have just used the
+search endpoint, since that can provide the title, description, and thumbnail
+via the =part=snippet=, however the =statistics= part which provides the comment
+count (as well as view count and upvotes) is not available on the search
+endpoint, so we have then hit the videos endpoint to retrieve this data. I
+decided to use the videos endpoint to build out the data that we return since
+it's a bit simpler to just build that returned data once.
+
+In =api/search.js= I ended up implementing an object called =priorSearches= to cache
+results and return those previously cached results. Did this because I blew
+through Google's free quota initially since every time I refocused the page it'd
+re-request the videos.
+
+**** Attempting to be efficient at calling the Google API
+Google has a "quota" on the Youtube Data API. You get 10,000 "quota" per day. I
+made that mistake of assuming that meant I can hit the YT Data API 10,000 per
+day, per project. That is wrong. "quota" actually is a made of currency and you
+get 10,000 of this fake currency to spend. Each endpoint costs a specific amount
+of your "quota". The =search= endpoint is 100 "quota" per call. The =video= endpoint
+(needed to get the comment count) is 1 quota per call. The most efficient method
+for gathering data is to call the search once, gather the video IDs and then
+make one request to the video endpoint to get all the comment counts for all the
+videos you want in one API call, this means you "spend" a total of 101 "quota"
+everytime the search button is hit. So the theoretical maximum for per project
+per day is 99 requests.
+
+This is Youtube Data API "cost" sheet:
+https://developers.google.com/youtube/v3/determine_quota_cost
+
+It circumvent further frustrations, I have decided to serve dummy data when not
+explicitly testing the API endpoint. The caching in the internal API doesn't
+kick in if we're serving mock data. Until I implemented this I didn't realize
+how chatty SWR is. I have tried to quiet it some, but it's not as quiet as I'd
+like. I'd probably use a different library in the future if I needed to
+guarantee one request only. But with my caching on the internal API, it isn't
+making any more requests to Google, so it's not a deal breaker for the moment.
+**** Data Objects
+The following is an example of the object returned by this app's internal search
+api:
+#+begin_src javascript
+{
+  ...,
+  '2a4Uxdy9TQY': {
+    publishedAt: '2014-11-22T10:31:23Z',
+    channelId: 'UCroqujvAIVKTBvJbE2E9cCA',
+    title: 'Idiot Test - 90% fail',
+    description: 'IMBECILE TEST: https://www.youtube.com/watch?v=qyskC8jj05A\n' +
+      '\n' +
+      'This video will test your idiot nature by asking you some questions - are you prone to being carried away by irrelevant information or are you instead deceptive and intelligent. Find out using this test, which 85-95% of people fail!',
+    thumbnails: {
+      default: {
+        "url": "https://i.ytimg.com/vi/jOq4rg2Dtr0/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      medium: [Object],
+      high: [Object],
+      standard: [Object],
+      maxres: [Object]
+    },
+    channelTitle: 'Thomas8april',
+    tags: [
+      'Idiot',            'Test',
+      'Are',              'you',
+      'an',               'imbecile',
+      'am',               'Idiot Test',
+      'Idiot Game',       'Am I an idiot',
+      'Are you an idiot', 'cows',
+      'puppy',            'fun',
+      'funny',            'amusing',
+      'awesome',          'interesting',
+      'knowledge',        'IQ',
+      'Knowledge test',   'IQ Test',
+      'Fun test',         'Quirky',
+      'Quirky Test',      'Trivia',
+      'Trivia test',      'Fun game',
+      'Thomas8april',     'T8A',
+      '90%',              'fAIL',
+      '90% FAIL'
+    ],
+    categoryId: '24',
+    liveBroadcastContent: 'none',
+    localized: {
+      title: 'Idiot Test - 90% fail',
+      description: 'IMBECILE TEST: https://www.youtube.com/watch?v=qyskC8jj05A\n' +
+        '\n' +
+        'This video will test your idiot nature by asking you some questions - are you prone to being carried away by irrelevant information or are you instead deceptive and intelligent. Find out using this test, which 85-95% of people fail!'
+    },
+    defaultAudioLanguage: 'en',
+    viewCount: '18154792',
+    likeCount: '266320',
+    favoriteCount: '0',
+    commentCount: '51404'
+  },
+  ...
+}
+#+end_src
+
+*** Sorting
+I'm not sure I like how I ended up implementing the sort, but it works. I wanted
+to just pass a function as state, but this was a problem because for some reason
+=useState= wants to run the function you pass it (even if you just pass the
+functions identity, ie sans the =()=) so I ended up making an object of sort
+functions and then =useState= is set to the key for the desired sorter.
+
+According to the search endpoint docs, videos are returned from most to least
+relevant. To store this relevance data we iterate over the array of videos
+returned by the search endpoint and store the ='relevane'= key. Then when we
+create the data that is used for rendering the videos later on, we make sure to
+include that relevance key for each video ID. And then to sort by relevance it
+is merely a matter of comparing the relevance of =a= and =b=.
+
+*** UI
+The UI is pretty simple. The primary component is the SearchComponent in
+=src/components/search-component.jsx=. This component implements the search box and then
+displays the results by passing the search request to the =SearchResults=
+component. A form is used to simplify the process of only triggering a request
+to the API when the user explicitly "submits". I initially was just making a new
+API call on each change to the input and this resulted in me blowing through
+Google's API quota max in less than an hour.
