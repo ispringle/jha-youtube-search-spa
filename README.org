@@ -1,4 +1,3 @@
-#+title: Youtube Search SPA
 * Youtube Search SPA
 ** About
 This is a project for a JHA job. The goal of this project is to implement the
