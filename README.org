@@ -27,6 +27,28 @@ parts:
 And the UI should be able to provide means of searching by keyword and sort
 results by date, rating, and relevance to the keyword.
 
+** Usage
+To use this locally you'll need a Google API key that is allowed to query the
+Youtube Data API. The [[https://developers.google.com/youtube/v3/getting-started#before-you-start][Google documentation]] covers how to get this token. Once
+you have the token create a =.env.local= file and add the key there, for example:
+#+begin_src shell :tangle ./.env.local
+GOOGLE_API_KEY="my-secret-key-123"
+#+end_src
+
+That is the hardest part. Now you just need to install the dependencies and then
+kick off the development server:
+#+begin_src shell
+yarn install
+yarn dev
+#+end_src
+
+You should be able to browser to =0.0.0.0:3000= and view the Youtube Search app
+now. The API is set to =strict= so it will pretty much just return children's
+videos.
+
+If you want to use this in production, just make sure to have the API key in the
+env somewhere.
+
 ** Dependencies and Packages
 *** NextJS
 This project is primarily built with NextJS. Main reason is I didn't have much
@@ -95,7 +117,9 @@ guarantee one request only. But with my caching on the internal API, it isn't
 making any more requests to Google, so it's not a deal breaker for the moment.
 **** Data Objects
 The following is an example of the object returned by this app's internal search
-api:
+api. A complete example of the returned data can be found in
+=src/test/mock-api-data.js=. This is the data I am using for +testing and+ local
+development.
 #+begin_src javascript
 {
   ...,
