@@ -4,6 +4,9 @@ This is a project for a JHA job. The goal of this project is to implement the
 Youtube Data API's search endpoint into a SPA and provide a UI for interacting
 with the API and displaying results.
 
+You can check out the project on Vercel [[https://youtube-search-pard68.vercel.app][here]]. If it fails to load videos,
+chances are that the API key has met it's quota for the day...
+
 *** Exercise Details
 The YouTube Data API provides access to YouTube. In this assignment you will write a single-page web application which uses the YouTube data api to provide a user interface for search. We use Web Components and Lit. But, feel free to use any framework or library you wish to accomplish this task. If you choose to use code generators or a boilerplate project as a starting point, please make sure we can tell which parts of the project are yours and which are generated or from the boilerplate. Descriptions in the readme and a range of commits helps with this.
 
