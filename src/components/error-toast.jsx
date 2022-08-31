@@ -1,3 +1,4 @@
+import React from "react";
 import { useToast } from "@chakra-ui/react";
 
 export default function ErrorToast() {

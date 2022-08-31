@@ -1,5 +1,5 @@
 import { parseISO } from "date-fns";
-import { useState } from "react";
+import React, { useState } from "react";
 import useSWRImmutable from "swr";
 import { Box, Select, Stack } from "@chakra-ui/react";
 
@@ -69,7 +69,7 @@ function SearchResults({ searchRequest, maxResults }) {
         {Object.entries(data)
           .sort(sorters[sortBy])
           .map(([k, v]) => (
-            <VideoCard id={k} loaded={true} videoId={k} videoData={v} />
+            <VideoCard id={k} key={k} loaded={true} videoId={k} videoData={v} />
           ))}
       </ResultGrid>
     </Stack>

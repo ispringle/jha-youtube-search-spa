@@ -1,9 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Box } from "@chakra-ui/react";
 
 import SearchForm from "./search-form";
 import SearchResults from "./search-results";
-import ResultSkeleton from "./result-skeleton";
 
 export default function SearchComponent() {
   const [searchRequest, setSearchRequest] = useState("");

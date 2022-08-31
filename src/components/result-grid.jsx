@@ -1,3 +1,4 @@
+import React from "react";
 import { SimpleGrid } from "@chakra-ui/react";
 
 export default function ResultGrid(props) {
